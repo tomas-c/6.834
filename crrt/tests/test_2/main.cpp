@@ -24,8 +24,8 @@ public:
 
 class TestProblem: public Problem<TestState, TestInput> {
 public:
-	const float MAX_TRANSLATION = 0.05;
-	const float MAX_ROTATION = M_PI/180*2;
+	const float MAX_TRANSLATION = 0.025;
+	const float MAX_ROTATION = M_PI/180*1;
 
 	const float MAX_TRANSLATION_SQR = MAX_TRANSLATION*MAX_TRANSLATION;
 
@@ -104,7 +104,7 @@ public:
 	virtual bool equal(const TestState &x1, const TestState &x2) {
 		float dp = (x2.p-x1.p).squaredNorm();
 		float dq = x1.q.dot(x2.q); dq = 1 - dq*dq;
-		return dp < 0.01 and dq < 0.01;
+		return dp < 0.001 and dq < 0.001;
 	}
 
 	virtual float metric(const TestState &x1, const TestState &x2) {
@@ -145,8 +145,8 @@ void write_solution(vector<TestState> &states, vector<TestInput> &inputs, const 
 	FILE* fw = fopen(file, "w");
 	for(int i = 0; i < states.size(); i++) {
 		TestState &s = states[i];
-		fprintf(fw, "%e,%e,%e", s.p[0], s.p[1], s.p[2]);
-		fprintf(fw, ",%e,%e,%e,%e", s.q.w(), s.q.x(), s.q.y(), s.q.z());
+		fprintf(fw, "%e %e %e", s.p[0], s.p[1], s.p[2]);
+		fprintf(fw, " %e %e %e %e", s.q.w(), s.q.x(), s.q.y(), s.q.z());
 		fprintf(fw, "\n");
 	}
 	fclose(fw);
@@ -156,10 +156,10 @@ int main() {
 	TestState init, goal;
 
 	init.p = Vector3f(0.0, 0.0, 0.0);
-	init.q = Quaternion<float>(0.7071067690849304, 0.0, 0.0, 0.7071067690849304);
+	init.q = Quaternion<float>(1.0, 0.0, 0.0, 0.0);
 
-	goal.p = Vector3f(1.9, 0.0, -2.0);
-	goal.q = Quaternion<float>(0.4999999701976776, -0.5, -0.5, 0.5);
+	goal.p = Vector3f(2.0, 0.0, -1.9);
+	goal.q = Quaternion<float>(sqrt(2)/2, 0, sqrt(2)/2, 0);
 
 	TestProblem problem(init, goal, "/home/tomas/Documents/6.834/hole.obj", "/home/tomas/Documents/6.834/pipe.obj");
 
