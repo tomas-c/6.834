@@ -64,11 +64,6 @@ public:
 		return x;
 	}
 
-	//Quaternion<float> quaternion_product(const Quaternion<float> &q1, const Quaternion<float> &q2) {
-
-		//return Quaternion<float>(w, x, y, z);
-	//}
-
 	bool advance(TestState &nx, TestInput &nu, const TestState &x1, const TestState &x2, bool reverse=false) {
 		// Translation
 		nu.t = x2.p - x1.p;
@@ -79,14 +74,6 @@ public:
 		nx.p = x1.p + nu.t;
 
 		// Rotation
-		/*nu.r = x1.q.slerp(1, x2.q);
-		float angle = 2*acos(nu.r.dot(x1.q));
-		if(angle > M_PI)
-			angle -= 2*M_PI;
-		if(fabs(angle) > MAX_ROTATION) {
-			nu.r = x1.q.slerp(fabs(MAX_ROTATION/angle), x2.q);
-		}*/
-
 		float angle = 2*acos(x1.q.dot(x2.q));
 		if(angle > M_PI)
 			angle -= 2*M_PI;
@@ -179,11 +166,3 @@ int main() {
 
 	write_solution(states, inputs, "/home/tomas/Documents/6.834/repo/solution3.txt");
 }
-
-/*int main() {
-	CollisionChecker collisionchecker("/home/tomas/Documents/6.834/hole.obj", "/home/tomas/Documents/6.834/pipe.obj");
-
-	collisionchecker.setPosition2(4.287292E-01,2.290383E-01,-9.880826E-01);
-	collisionchecker.setRotation2(3.342959E-01,-1.913295E-01,-3.315065e-01,8.612449E-01);
-	std::cout << std::string(collisionchecker.collides() ? "True":"False") << std::endl;
-}*/
