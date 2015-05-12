@@ -79,14 +79,6 @@ public:
 		nx.p = x1.p + nu.t;
 
 		// Rotation
-		/*nu.r = x1.q.slerp(1, x2.q);
-		float angle = 2*acos(nu.r.dot(x1.q));
-		if(angle > M_PI)
-			angle -= 2*M_PI;
-		if(fabs(angle) > MAX_ROTATION) {
-			nu.r = x1.q.slerp(fabs(MAX_ROTATION/angle), x2.q);
-		}*/
-
 		float angle = 2*acos(x1.q.dot(x2.q));
 		if(angle > M_PI)
 			angle -= 2*M_PI;
@@ -120,14 +112,12 @@ public:
 	}
 
 	bool is_near(const TestState &x1, const TestState &x2) {
-		/*Vector3f trans = x2.q - x1.q;
-		if(trans.squaredNorm() < MAX_TRANSLATION_SQR) {
+		if((x2.p-x1.p).squaredNorm() < MAX_TRANSLATION_SQR) {
 			float angle = 2*acos(x1.q.dot(x2.q));
 			if(angle > M_PI)
 				angle -= 2*M_PI;
 			return fabs(angle) < MAX_ROTATION;
-		}*/
-		
+		}
 		return false;
 	}
 };
@@ -175,7 +165,7 @@ int main() {
 
 	TestProblem problem(init, goal, "/home/tomas/Documents/6.834/hole.obj", "/home/tomas/Documents/6.834/pipe.obj");
 
-	BIRRT<TestState, TestInput, TestProblem> solver(&problem);
+	BIRRTStar<TestState, TestInput, TestProblem> solver(&problem);
 
 	pair<Node<TestState, TestInput>*, Node<TestState, TestInput>*> solution_nodes = solver.run(100000);
 

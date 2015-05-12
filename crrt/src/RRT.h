@@ -226,7 +226,7 @@ protected:
 			bool success = p->advance(xnew, unew, nearest_node->x, x, reverse);
 			if(success) {
 				std::vector<NodeClass*> X_near;
-				near_nodes(X_near, nearest_node, tree, x);
+				near_nodes(X_near, tree, x);
 
 				NodeClass* min_node = nearest_node;
 				int min_cost = nearest_node->cost + p->metric(nearest_node->x, xnew);

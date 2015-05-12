@@ -86,10 +86,10 @@ int main() {
 
 	solver.run(1000);
 
-	// mglGraph gr(0, 1000, 1000);
-	// gr.SetRange('x', -1., 1.);
-	// gr.SetRange('y', -1., 1.);
- //  	visualize_tree(gr, solver.t_init, 'r');
- //  	visualize_tree(gr, solver.t_goal, 'b');
- //  	gr.WriteFrame("test.png");
+	mglGraph gr(0, 1000, 1000);
+	gr.SetRange('x', -1., 1.);
+	gr.SetRange('y', -1., 1.);
+    visualize_tree(gr, solver.t_init, 'r');
+	visualize_tree(gr, solver.t_goal, 'b');
+	gr.WriteFrame("test.png");
 }

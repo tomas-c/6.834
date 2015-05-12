@@ -121,14 +121,12 @@ public:
 	}
 
 	bool is_near(const TestState &x1, const TestState &x2) {
-		/*Vector3f trans = x2.q - x1.q;
-		if(trans.squaredNorm() < MAX_TRANSLATION_SQR) {
+		if((x2.p-x1.p).squaredNorm() < MAX_TRANSLATION_SQR) {
 			float angle = 2*acos(x1.q.dot(x2.q));
 			if(angle > M_PI)
 				angle -= 2*M_PI;
 			return fabs(angle) < MAX_ROTATION;
-		}*/
-		
+		}
 		return false;
 	}
 };
@@ -176,7 +174,7 @@ int main() {
 
 	TestProblem problem(init, goal, "/home/tomas/Documents/6.834/mousetrap4.obj", Vector3f(0.05, 0.3, 0.05));
 
-	BIRRT<TestState, TestInput, TestProblem> solver(&problem);
+	BIRRTStar<TestState, TestInput, TestProblem> solver(&problem);
 
 	pair<Node<TestState, TestInput>*, Node<TestState, TestInput>*> solution_nodes = solver.run(100000);
 
