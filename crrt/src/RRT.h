@@ -206,11 +206,18 @@ public:
 
 // RRT* - overrides extend()
 template <class StateClass, class InputClass, class ProblemClass>
-class RRTstar_Base: public RRTBase<StateClass, InputClass, ProblemClass> {
+class RRTStarBase: public RRTBase<StateClass, InputClass, ProblemClass> {
+public:
+	using RRTBase<StateClass, InputClass, ProblemClass>::RRTBase;
+
+public:
+	typedef Node<StateClass, InputClass> NodeClass;
+	typedef Tree<StateClass, InputClass> TreeClass;
+
+protected:
 	using RRTBase<StateClass, InputClass, ProblemClass>::p;
 	using RRTBase<StateClass, InputClass, ProblemClass>::nearest_neighbor;
 
-protected:
 	NodeClass* extend(TreeClass *tree, StateClass x, bool reverse=false) {
 		NodeClass* nearest_node = nearest_neighbor(tree, x);
 
@@ -273,3 +280,83 @@ protected:
 			}
 		}
 	}
+};
+
+template <class StateClass, class InputClass, class ProblemClass>
+class BIRRTStar: public RRTStarBase<StateClass, InputClass, ProblemClass> {
+	using RRTStarBase<StateClass, InputClass, ProblemClass>::p;
+	using RRTStarBase<StateClass, InputClass, ProblemClass>::extend;
+
+public:
+	typedef Node<StateClass, InputClass> NodeClass;
+	typedef Tree<StateClass, InputClass> TreeClass;
+
+public:
+	TreeClass t_init, t_goal;
+
+	BIRRTStar(ProblemClass *problem): RRTStarBase<StateClass, InputClass, ProblemClass>(problem) {
+		p = problem;
+	}
+
+	std::pair<NodeClass*, NodeClass*> run(int max_iterations) {
+		t_init = TreeClass(); t_init.add_root(p->init, InputClass());
+		t_goal = TreeClass(); t_goal.add_root(p->goal, InputClass());
+
+		bool reverse = false;
+		TreeClass* t1 = &t_init; TreeClass* t2 = &t_goal;
+
+		int iteration = 0;
+		while(iteration < max_iterations) {
+			iteration++;
+
+			if(iteration % 100 == 0) {
+				std::cout << "Iteration = \t" << iteration;
+				std::cout << "\tt_init size = \t" << t_init.nodes.size();
+				std::cout << "\tt_goal size = \t" << t_goal.nodes.size();
+				std::cout << std::endl;
+			}
+
+			StateClass x_rand = p->random_state();
+
+			// Extend Tree 1 towards the random state
+			NodeClass* new1 = extend(t1, x_rand, reverse);
+			if(new1 != NULL) {
+				// Extend Tree 2 towards the new state
+				NodeClass* new2 = extend(t2, new1->x, !reverse);
+				// Check if goal was reached
+				if(new2 != NULL and p->equal(new1->x, new2->x)) {
+					std::cout << "Solution found in " << iteration << " iterations" << std::endl;
+					if(reverse)
+						return std::make_pair(new2, new1);
+					else
+						return std::make_pair(new1, new2);
+				}
+			}
+
+			// swap trees
+			std::swap(t1, t2);
+			reverse = !reverse;
+		}
+
+		std::cout << "No solution found" << std::endl;
+		return std::pair<NodeClass*, NodeClass*>(NULL, NULL);
+	}
+
+	void get_sulution(std::vector<StateClass> &states, std::vector<InputClass> &inputs, NodeClass *n_init, NodeClass *n_goal) {
+		NodeClass *n;
+
+		n = n_init;
+		while(n != NULL) {
+			states.push_back(n->x); inputs.push_back(n->u);
+			n = n->parent;
+		}
+		std::reverse(states.begin(),states.end());
+		std::reverse(inputs.begin(),inputs.end());
+
+		n = n_goal;
+		while(n != NULL) {
+			states.push_back(n->x); inputs.push_back(n->u);
+			n = n->parent;
+		}
+	}
+};

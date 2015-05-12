@@ -59,8 +59,7 @@ public:
 	}
 
 	virtual bool is_near(const TestState &x1, const TestState &x2) {
-		TestInput diff = x2-x1;
-		return diff.squaredNorm() < STEP_SQR;
+		return (x2-x1).squaredNorm() < STEP_SQR;
 	}
 };
 
@@ -83,7 +82,7 @@ void visualize_tree(mglGraph &gr, Tree<TestState, TestInput> &tree, const char c
 
 int main() {
 	TestProblem problem(TestState(0., 0.), TestState(1., 1.));
-	BIRRT<TestState, TestInput, TestProblem> solver(&problem);
+	BIRRTStar<TestState, TestInput, TestProblem> solver(&problem);
 
 	solver.run(1000);
 

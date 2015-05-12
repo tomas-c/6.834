@@ -120,13 +120,13 @@ public:
 	}
 
 	bool is_near(const TestState &x1, const TestState &x2) {
-		Vector3f trans = x2.q - x1.q;
+		/*Vector3f trans = x2.q - x1.q;
 		if(trans.squaredNorm() < MAX_TRANSLATION_SQR) {
 			float angle = 2*acos(x1.q.dot(x2.q));
 			if(angle > M_PI)
 				angle -= 2*M_PI;
 			return fabs(angle) < MAX_ROTATION;
-		}
+		}*/
 		
 		return false;
 	}
