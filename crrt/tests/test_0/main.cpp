@@ -57,6 +57,11 @@ public:
 	virtual float metric(const TestState &x1, const TestState &x2) {
 		return (x2-x1).squaredNorm();
 	}
+
+	virtual bool is_near(const TestState &x1, const TestState &x2) {
+		TestInput diff = x2-x1;
+		return diff.squaredNorm() < STEP_SQR;
+	}
 };
 
 void visualize_tree(mglGraph &gr, Tree<TestState, TestInput> &tree, const char color) {
@@ -82,10 +87,10 @@ int main() {
 
 	solver.run(1000);
 
-	mglGraph gr(0, 1000, 1000);
-	gr.SetRange('x', -1., 1.);
-	gr.SetRange('y', -1., 1.);
-  	visualize_tree(gr, solver.t_init, 'r');
-  	visualize_tree(gr, solver.t_goal, 'b');
-  	gr.WriteFrame("test.png");
+	// mglGraph gr(0, 1000, 1000);
+	// gr.SetRange('x', -1., 1.);
+	// gr.SetRange('y', -1., 1.);
+ //  	visualize_tree(gr, solver.t_init, 'r');
+ //  	visualize_tree(gr, solver.t_goal, 'b');
+ //  	gr.WriteFrame("test.png");
 }

@@ -38,6 +38,7 @@ public:
 	InputClass u;
 
 	Node *parent;
+	int cost;
 
 	Node(StateClass nx, InputClass nu, NodeClass *nparent) {
 		x = nx; u = nu; parent = nparent;
@@ -140,7 +141,7 @@ public:
 		p = problem;
 	}
 
-	std::pair<NodeClass*, NodeClass*> run(int max_interations) {
+	std::pair<NodeClass*, NodeClass*> run(int max_iterations) {
 		t_init = TreeClass(); t_init.add_root(p->init, InputClass());
 		t_goal = TreeClass(); t_goal.add_root(p->goal, InputClass());
 
@@ -148,7 +149,7 @@ public:
 		TreeClass* t1 = &t_init; TreeClass* t2 = &t_goal;
 
 		int iteration = 0;
-		while(iteration < max_interations) {
+		while(iteration < max_iterations) {
 			iteration++;
 
 			if(iteration % 100 == 0) {
@@ -202,3 +203,73 @@ public:
 		}
 	}
 };
+
+// RRT* - overrides extend()
+template <class StateClass, class InputClass, class ProblemClass>
+class RRTstar_Base: public RRTBase<StateClass, InputClass, ProblemClass> {
+	using RRTBase<StateClass, InputClass, ProblemClass>::p;
+	using RRTBase<StateClass, InputClass, ProblemClass>::nearest_neighbor;
+
+protected:
+	NodeClass* extend(TreeClass *tree, StateClass x, bool reverse=false) {
+		NodeClass* nearest_node = nearest_neighbor(tree, x);
+
+		if(nearest_node != NULL) {
+			StateClass xnew; InputClass unew;
+			bool success = p->advance(xnew, unew, nearest_node->x, x, reverse);
+			if(success) {
+				std::vector<NodeClass*> X_near;
+				near_nodes(X_near, nearest_node, tree, x);
+
+				NodeClass* min_node = nearest_node;
+				int min_cost = nearest_node->cost + p->metric(nearest_node->x, xnew);
+
+				StateClass xtest; InputClass utest;
+				bool test_success = false;
+
+				// look for best parent node for new node
+				for(NodeClass* node : X_near) {
+					test_success = p->advance(xtest, utest, node->x, xnew, reverse);
+					if (test_success && p->equal(xnew, xtest)) {
+						int c = node->cost + p->metric(node->x, xnew);
+						if (c < min_cost) {
+							min_node = node;
+							min_cost = c;
+							unew = utest;
+						}
+					}
+				}
+				NodeClass *new_node = tree->add_child(min_node, xnew, unew);
+				new_node->cost = min_cost;
+
+				// check if there are shorter paths through new_node to near nodes
+				for(NodeClass* node : X_near) {
+					if (node != min_node) {
+						test_success = p->advance(xtest, utest, xnew, node->x, reverse);
+						if (test_success && p->equal(xtest, node->x)) {
+							if (node->cost > min_cost + p->metric(xnew, node->x)) {
+								node->parent = new_node;
+								node->u = utest;
+							}
+						}
+					}
+				}
+
+				return new_node;
+			}
+		}
+		return NULL;
+	}
+
+	void near_nodes(std::vector<NodeClass*> X_near, const TreeClass *t, const StateClass &x) {
+		float min_dist = FLT_MAX;
+		for(typename TreeClass::const_iterator it = t->nodes.begin(); it != t->nodes.end(); it++) {
+			NodeClass *node = *it;
+
+			// look for nodes within step size
+			bool is_near = p->is_near(x, node->x);
+			if (is_near) {
+				X_near.push_back(node);
+			}
+		}
+	}
