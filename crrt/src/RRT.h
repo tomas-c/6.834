@@ -218,6 +218,8 @@ protected:
 	using RRTBase<StateClass, InputClass, ProblemClass>::p;
 	using RRTBase<StateClass, InputClass, ProblemClass>::nearest_neighbor;
 
+	int counter = 0;
+
 	NodeClass* extend(TreeClass *tree, StateClass x, bool reverse=false) {
 		NodeClass* nearest_node = nearest_neighbor(tree, x);
 
@@ -243,6 +245,7 @@ protected:
 							min_node = node;
 							min_cost = c;
 							unew = utest;
+							counter++;
 						}
 					}
 				}
@@ -253,10 +256,12 @@ protected:
 				for(NodeClass* node : X_near) {
 					if (node != min_node) {
 						test_success = p->advance(xtest, utest, xnew, node->x, reverse);
-						if (test_success && p->equal(xtest, node->x)) {
-							if (node->cost > min_cost + p->metric(xnew, node->x)) {
+						if (test_success) {
+							if (node->cost > min_cost + p->metric(xnew, xtest)) {
+								node->x = xtest;
 								node->parent = new_node;
 								node->u = utest;
+								counter++;
 							}
 						}
 					}
@@ -286,6 +291,7 @@ template <class StateClass, class InputClass, class ProblemClass>
 class BIRRTStar: public RRTStarBase<StateClass, InputClass, ProblemClass> {
 	using RRTStarBase<StateClass, InputClass, ProblemClass>::p;
 	using RRTStarBase<StateClass, InputClass, ProblemClass>::extend;
+	using RRTStarBase<StateClass, InputClass, ProblemClass>::counter;
 
 public:
 	typedef Node<StateClass, InputClass> NodeClass;
@@ -299,6 +305,8 @@ public:
 	}
 
 	std::pair<NodeClass*, NodeClass*> run(int max_iterations) {
+		std::pair<NodeClass*, NodeClass*> join_nodes;
+
 		t_init = TreeClass(); t_init.add_root(p->init, InputClass());
 		t_goal = TreeClass(); t_goal.add_root(p->goal, InputClass());
 
@@ -327,9 +335,9 @@ public:
 				if(new2 != NULL and p->equal(new1->x, new2->x)) {
 					std::cout << "Solution found in " << iteration << " iterations" << std::endl;
 					if(reverse)
-						return std::make_pair(new2, new1);
+						join_nodes = std::make_pair(new2, new1);
 					else
-						return std::make_pair(new1, new2);
+						join_nodes = std::make_pair(new1, new2);
 				}
 			}
 
@@ -338,8 +346,8 @@ public:
 			reverse = !reverse;
 		}
 
-		std::cout << "No solution found" << std::endl;
-		return std::pair<NodeClass*, NodeClass*>(NULL, NULL);
+		std::cout << "RRT* improvements: " << counter << std::endl;
+		return join_nodes;
 	}
 
 	void get_sulution(std::vector<StateClass> &states, std::vector<InputClass> &inputs, NodeClass *n_init, NodeClass *n_goal) {
