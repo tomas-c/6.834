@@ -135,6 +135,7 @@ public:
 	typedef Tree<StateClass, InputClass> TreeClass;
 
 public:
+	int iterations_completed ;
 	TreeClass t_init, t_goal;
 
 	BIRRT(ProblemClass *problem): RRTBase<StateClass, InputClass, ProblemClass>(problem) {
@@ -142,6 +143,8 @@ public:
 	}
 
 	std::pair<NodeClass*, NodeClass*> run(int max_iterations) {
+		iterations_completed = 0;
+
 		t_init = TreeClass(); t_init.add_root(p->init, InputClass());
 		t_goal = TreeClass(); t_goal.add_root(p->goal, InputClass());
 
@@ -150,7 +153,7 @@ public:
 
 		int iteration = 0;
 		while(iteration < max_iterations) {
-			iteration++;
+			iteration++; iterations_completed++;
 
 			if(iteration % 100 == 0) {
 				std::cout << "Iteration = \t" << iteration;
@@ -177,8 +180,10 @@ public:
 			}
 
 			// swap trees
-			std::swap(t1, t2);
-			reverse = !reverse;
+			if(t1->nodes.size()*1.2 > t2->nodes.size()) {
+				std::swap(t1, t2);
+				reverse = !reverse;
+			}
 		}
 
 		std::cout << "No solution found" << std::endl;
