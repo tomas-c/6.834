@@ -82,7 +82,7 @@ void visualize_tree(mglGraph &gr, Tree<TestState, TestInput> &tree, const char c
 
 int main() {
 	TestProblem problem(TestState(0., 0.), TestState(1., 1.));
-	BIRRTStar<TestState, TestInput, TestProblem> solver(&problem);
+	BIRRT<TestState, TestInput, TestProblem> solver(&problem);
 
 	solver.run(1000);
 

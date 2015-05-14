@@ -64,11 +64,6 @@ public:
 		return x;
 	}
 
-	//Quaternion<float> quaternion_product(const Quaternion<float> &q1, const Quaternion<float> &q2) {
-
-		//return Quaternion<float>(w, x, y, z);
-	//}
-
 	bool advance(TestState &nx, TestInput &nu, const TestState &x1, const TestState &x2, bool reverse=false) {
 		// Translation
 		nu.t = x2.p - x1.p;
@@ -89,6 +84,11 @@ public:
 			nx.q.normalize();
 		}
 		nu.r = nx.q * x1.q.inverse();
+
+		if(reverse) {
+			nu.r = nu.r.inverse();
+			nu.t = -nu.t;
+		}
 
 		return !collides(nx);
 	}
@@ -154,6 +154,14 @@ void write_solution(vector<TestState> &states, vector<TestInput> &inputs, const 
 	fclose(fw);
 }
 
+void write_vector(vector<double> &data, const char* file) {
+	FILE* fw = fopen(file, "a");
+	for(int i = 0; i < data.size(); i++) {
+		fprintf(fw, "%E\n", data[i]);
+	}
+	fclose(fw);
+}
+
 int main() {
 	TestState init, goal;
 
@@ -163,9 +171,30 @@ int main() {
 	goal.p = Vector3f(2.0, 0.0, -1.9);
 	goal.q = Quaternion<float>(sqrt(2)/2, 0, sqrt(2)/2, 0);
 
-	TestProblem problem(init, goal, "/home/tomas/Documents/6.834/hole.obj", "/home/tomas/Documents/6.834/pipe.obj");
+	TestProblem problem(init, goal, "hole.obj", "pipe.obj");
 
-	BIRRTStar<TestState, TestInput, TestProblem> solver(&problem);
+	// Run many iterations to get some statistics
+	/*vector<double> iterations , tree1_size, tree2_size, times;
+	for(int i = 0; i < 200; i++) {
+		auto start = chrono::steady_clock::now();
+		BIRRT<TestState, TestInput, TestProblem> solver(&problem);
+		pair<Node<TestState, TestInput>*, Node<TestState, TestInput>*> solution_nodes = solver.run(100000);
+		auto end = chrono::steady_clock::now();
+
+		iterations.push_back(solver.iterations_completed);
+		tree1_size.push_back(solver.t_init.nodes.size());
+		tree2_size.push_back(solver.t_goal.nodes.size());
+
+		auto diff = end - start;
+		times.push_back(chrono::duration <double, milli> (diff).count());
+	}
+	write_vector(iterations, "iterations.txt");
+	write_vector(tree1_size, "tree1.txt");
+	write_vector(tree2_size, "tree2.txt");
+	write_vector(times, "times.txt");*/
+
+	
+	BIRRT<TestState, TestInput, TestProblem> solver(&problem);
 
 	pair<Node<TestState, TestInput>*, Node<TestState, TestInput>*> solution_nodes = solver.run(100000);
 
@@ -179,13 +208,5 @@ int main() {
 
 	test_solution(states, inputs);
 
-	write_solution(states, inputs, "/home/tomas/Documents/6.834/repo/solution3.txt");
+	write_solution(states, inputs, "solution.txt");
 }
-
-/*int main() {
-	CollisionChecker collisionchecker("/home/tomas/Documents/6.834/hole.obj", "/home/tomas/Documents/6.834/pipe.obj");
-
-	collisionchecker.setPosition2(4.287292E-01,2.290383E-01,-9.880826E-01);
-	collisionchecker.setRotation2(3.342959E-01,-1.913295E-01,-3.315065e-01,8.612449E-01);
-	std::cout << std::string(collisionchecker.collides() ? "True":"False") << std::endl;
-}*/
